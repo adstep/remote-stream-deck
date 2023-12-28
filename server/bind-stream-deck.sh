@@ -12,5 +12,5 @@ if [ -z "$BUSID" ]; then
     exit 1
 fi
 
-usbip attach -b $BUSID
+usbip bind -b $BUSID
 echo "Device attached with busid $BUSID."
