@@ -12,5 +12,5 @@ if [ -z "$BUSID" ]; then
     exit 1
 fi
 
-usbip detach -b $BUSID
+usbip unbind -b $BUSID
 echo "Device attached with busid $BUSID."

@@ -1,10 +1,10 @@
 [Unit]
-Description=Attach Elgato Stream Deck using usbip
+Description=Bind Elgato Stream Deck using usbip
 After=usbipd.service
 Requires=usbipd.service
 
 [Service]
-ExecStart=/usr/local/bin/attach-stream-deck.sh
+ExecStart=/usr/local/bin/bind-stream-deck.sh
 Type=oneshot
 RemainAfterExit=yes
 
