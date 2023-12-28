@@ -1,11 +1,11 @@
 #!/bin/bash
 
-DEVICE_NAME="Elgato Systems GmbH Stream Deck"
+DEVICE_ID="0fd9:0080"
 
 # Wait a moment to ensure usbipd is fully up
-sleep 5
+sleep 1
 
-BUSID=$(usbip list -l | grep -B 2 "$DEVICE_NAME" | grep -oP 'busid\s+\K(\S+)')
+BUSID=$(usbip list -l | grep -B 2 ${DEVICE_ID} | awk '/busid/ {print $3}')
 
 if [ -z "$BUSID" ]; then
     echo "Device not found."

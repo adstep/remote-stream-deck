@@ -1,4 +1,5 @@
-$deviceRegex = "\s(?<busId>\d+-\d+):(?<vendorName>[^:]+):(?<deviceName>.*)\((?<deviceId>[A-Fa-f0-9]{4}:[A-Fa-f0-9]{4})\)"
+$remoteDeviceRegex = "\s(?<busId>\d+-\d+):(?<vendorName>[^:]+):(?<deviceName>.*)\((?<deviceId>[A-Fa-f0-9]{4}:[A-Fa-f0-9]{4})\)"
+$importedDeviceRegex = "Port (?<port>[\d]+):[^\n]+\n\s+(?<vendorName>[^:]+):(?<deviceName>.*)\((?<deviceId>[A-Fa-f0-9]{4}:[A-Fa-f0-9]{4})\)"
 
 function Add-Path($path) {
     # Get the current user's PATH environment variable
@@ -23,12 +24,12 @@ function Reload-Path {
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 }
 
-function Get-Devices($remote) {
+function Get-Remote-Devices($remote) {
     $lines = & usbip list --remote $remote
     $devices = @()
 
     foreach ($line in $lines) {
-        if ($line -match $deviceRegex) {
+        if ($line -match $remoteDeviceRegex) {
             $devices += @{
                 BusId = $matches["busId"]
                 VendorName = $matches["vendorName"]
@@ -41,8 +42,36 @@ function Get-Devices($remote) {
     return $devices
 }
 
-function Find-Device($remote, $deviceId) {
-    $devices = Get-Devices $remote
+function Find-Remote-Device($remote, $deviceId) {
+    $devices = Get-Remote-Devices $remote
+
+    foreach ($device in $devices) {
+        if ($device.DeviceId -eq $deviceId) {
+            return $device
+        }
+    }
+
+    return $null
+}
+
+function Get-Imported-Devices() {
+    $output = & usbip port | Join-String -Separator "`n"
+    $devices = @()
+
+    foreach ($match in [regex]::Matches($output, $importedDeviceRegex)) {
+        $devices += @{
+            Port = $match.Groups["port"].Value
+            VendorName = $match.Groups["vendorName"].Value
+            DeviceName = $match.Groups["deviceName"].Value
+            DeviceId = $match.Groups["deviceId"].Value
+        }
+    }
+
+    return $devices
+}
+
+function Find-Imported-Device($deviceId) {
+    $devices = Get-Imported-Devices
 
     foreach ($device in $devices) {
         if ($device.DeviceId -eq $deviceId) {
