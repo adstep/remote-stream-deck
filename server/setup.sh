@@ -10,3 +10,6 @@ install -m 755 ./unbind-stream-deck.sh /usr/local/bin/unbind-stream-deck.sh
 
 install -m 600 ./bind-stream-deck.service /etc/systemd/system/bind-stream-deck.service
 install -m 600 ./usbipd.service /etc/systemd/system/usbipd.service
+
+systemctl enable usbipd.service
+systemctl enable bind-stream-deck.service

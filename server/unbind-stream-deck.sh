@@ -2,15 +2,16 @@
 
 DEVICE_ID="0fd9:0080"
 
-# Wait a moment to ensure usbipd is fully up
-sleep 1
+echo "Searching for device with id ${DEVICE_ID}..."
 
-BUSID=$(usbip list -l | grep -B 2 ${DEVICE_ID} | awk '/busid/ {print $3}')
+BUS_ID=$(usbip list -l | grep -B 2 ${DEVICE_ID} | awk '/busid/ {print $3}')
 
-if [ -z "$BUSID" ]; then
-    echo "Device not found."
+if [ -z "${BUS_ID}" ]; then
+    echo "Device not found"
     exit 1
 fi
 
-usbip unbind -b $BUSID
-echo "Device attached with busid $BUSID."
+echo "Unbding device with busid ${BUS_ID}..."
+
+usbip unbind -b ${BUS_ID}
+echo "Device attached with busid ${BUS_ID}."
