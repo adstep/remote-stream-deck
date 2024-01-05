@@ -1,6 +1,16 @@
 $remoteDeviceRegex = "\s(?<busId>\d+-\d+):(?<vendorName>[^:]+):(?<deviceName>.*)\((?<deviceId>[A-Fa-f0-9]{4}:[A-Fa-f0-9]{4})\)"
 $importedDeviceRegex = "Port (?<port>[\d]+):[^\n]+\n\s+(?<vendorName>[^:]+):(?<deviceName>.*)\((?<deviceId>[A-Fa-f0-9]{4}:[A-Fa-f0-9]{4})\)"
 
+function Write-Log {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Message
+    )
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    Write-Host "[$timestamp] $Message"
+}
+
 function Add-Path($path) {
     # Get the current user's PATH environment variable
     $currentUserPath = [Environment]::GetEnvironmentVariable("Path", "User")
@@ -24,9 +34,47 @@ function Reload-Path {
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 }
 
+function Test-Remote($remote) {
+    $tcpClient = New-Object System.Net.Sockets.TcpClient
+    $port = 3240
+    $timeout = 250
+
+    try {
+        $tcpClient.ReceiveTimeout = $timeout
+        $tcpClient.SendTimeout = $timeout
+
+        $asyncResult = $tcpClient.BeginConnect($remote, $port, $null, $null)
+        $waitHandle = $asyncResult.AsyncWaitHandle
+
+        if ($waitHandle.WaitOne($timeout, $false)) {
+            if ($tcpClient.Connected) {
+                Write-Verbose "Port $port on $remote is open."
+                $tcpClient.EndConnect($asyncResult)
+                return $true
+            }
+        } else {
+            Write-Verbose "Connection to $port 3240 on $remote timed out."
+            return $false
+        }
+    }
+    catch {
+        Write-Host "Port $port on $remote is closed or unreachable."
+        return $false
+    }
+    finally {
+        $tcpClient.Close()
+        $tcpClient.Dispose()
+    }
+}
+
 function Get-Remote-Devices($remote) {
-    $lines = & usbip list --remote $remote
+    $lines = & usbip list --remote $remote 2>$null
     $devices = @()
+
+    # If the remote host is not running usbipd
+    if ($LASTEXITCODE -eq 3) {
+        return $devices
+    }
 
     foreach ($line in $lines) {
         if ($line -match $remoteDeviceRegex) {
@@ -86,6 +134,6 @@ function Attach-Device($remote, $busId) {
     & usbip attach --remote $remote --busid $busId
 }
 
-function Detach-Device {
-    & usbip detach -p 0
+function Detach-Device($port) {
+    & usbip detach -p $port
 }
