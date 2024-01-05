@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 
 Import-Module "$PSScriptRoot\common.psm1" -Force -WarningAction Ignore
 
-Start-Transcript -Path "$PSScriptRoot\..\attach-stream-deck.log"
+Start-Transcript -Path "$PSScriptRoot\..\logs\attach-stream-deck.log"
 
 try {
     $remoteHost = "10.0.0.87"
