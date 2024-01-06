@@ -36,7 +36,7 @@ function Reload-Path {
 
 function Test-Remote($remote) {
     $tcpClient = New-Object System.Net.Sockets.TcpClient
-    $port = 3240
+    $port = 22
     $timeout = 250
 
     try {
@@ -53,7 +53,7 @@ function Test-Remote($remote) {
                 return $true
             }
         } else {
-            Write-Verbose "Connection to $port 3240 on $remote timed out."
+            Write-Verbose "Connection to $port on $remote timed out."
             return $false
         }
     }
@@ -68,7 +68,12 @@ function Test-Remote($remote) {
 }
 
 function Get-Remote-Devices($remote) {
-    $lines = & usbip list --remote $remote 2>$null
+    $lines = & usbip list --remote $remote 2>&1 | ForEach-Object {
+        if ($_ -is [System.Management.Automation.ErrorRecord]) {
+        } else {
+          $_
+        }
+      }
     $devices = @()
 
     # If the remote host is not running usbipd

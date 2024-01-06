@@ -4,7 +4,7 @@ Import-Module "$PSScriptRoot\common.psm1" -Force -WarningAction Ignore
 
 try 
 {
-    $remoteHost = "10.0.0.87"
+    $remoteHost = "10.0.0.151"
     $deviceId = "0fd9:0080"
 
     Start-Transcript -Path "$PSScriptRoot\..\logs\detach-stream-deck.log"

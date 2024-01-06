@@ -7,8 +7,23 @@ Import-Module "$PSScriptRoot\common.psm1" -Force -WarningAction Ignore
 Start-Transcript -Path "$PSScriptRoot\..\logs\attach-stream-deck.log"
 
 try {
-    $remoteHost = "10.0.0.87"
+    $remoteHost = "10.0.0.151"
     $deviceId = "0fd9:0080"
+
+    Write-Log "Searching for imported devices..."
+    $importedDevices = Get-Imported-Devices
+
+    foreach ($importedDevice in $importedDevices)
+    {
+        Write-Log "  Found device '$deviceId':"
+        Write-Log "    Port:       $($importedDevice.Port)"
+        Write-Log "    BusId:      $($importedDevice.BusId)"
+        Write-Log "    VendorName: $($importedDevice.VendorName)"
+        Write-Log "    DeviceName: $($importedDevice.DeviceName)"
+
+        Write-Log "  Detaching device"
+        Detach-Device $importedDevice.Port
+    }
 
     while ($true) 
     {
@@ -44,7 +59,6 @@ try {
         }
 
         Write-Log "  Found device '$deviceId':"
-        Write-Log "    Port:       $($device.Port)"
         Write-Log "    BusId:      $($device.BusId)"
         Write-Log "    VendorName: $($device.VendorName)"
         Write-Log "    DeviceName: $($device.DeviceName)"
@@ -62,6 +76,13 @@ try {
         while ($true) {
             if (!(Test-Remote $remoteHost)) {
                 Write-Log "  Remote host is not reachable"
+                break
+            }
+
+            $device = Find-Remote-Device $remoteHost $deviceId
+
+            if ($device) {
+                Write-Log "  Device '$deviceId' is available on remote host '$remoteHost'"
                 break
             }
 

@@ -2,7 +2,6 @@
 
 DEVICE_ID="0fd9:0080"
 
-
 echo "Searching for device with id ${DEVICE_ID}..."
 
 BUS_ID=$(usbip list -l | grep -B 2 ${DEVICE_ID} | awk '/busid/ {print $3}')
